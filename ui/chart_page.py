@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLabel, QSizePolicy
 from PyQt5.QtCore import QThread, pyqtSignal, QObject, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import mplfinance as mpf
@@ -6,8 +6,10 @@ import pandas as pd
 import pandas_ta as ta
 import websocket
 import json
+from matplotlib import rcParams
 from data.binance_api import get_ohlcv
 
+rcParams['font.size'] = 9
 
 class KlineStreamWorker(QObject):
     kline_received = pyqtSignal(dict)
@@ -22,7 +24,7 @@ class KlineStreamWorker(QObject):
         def on_message(ws, message):
             msg = json.loads(message)
             kline = msg.get("k", {})
-            if kline.get("x"):  # only emit on closed candles
+            if kline.get("x"):
                 self.kline_received.emit(kline)
 
         def on_error(ws, error):
@@ -40,7 +42,6 @@ class KlineStreamWorker(QObject):
         if self.ws:
             self.ws.close()
 
-
 class ChartPage(QWidget):
     def __init__(self):
         super().__init__()
@@ -50,7 +51,7 @@ class ChartPage(QWidget):
         self.symbol_box = QComboBox()
         self.symbol_box.addItems(["BTCUSDT", "ETHUSDT", "BNBUSDT"])
         self.symbol_box.currentTextChanged.connect(self.symbol_changed)
-        self.layout.addWidget(self.symbol_box)
+        self.layout.addWidget(self.symbol_box)  # ⬅️ no alignment
 
         self.canvas = None
         self.df = None
@@ -59,7 +60,7 @@ class ChartPage(QWidget):
 
         self.alert_label = QLabel("")
         self.alert_label.setStyleSheet("color: red; font-weight: bold;")
-        self.layout.addWidget(self.alert_label)
+        self.layout.addWidget(self.alert_label)  # ⬅️ no alignment
 
         self.symbol_changed(self.symbol_box.currentText())
 
@@ -118,6 +119,8 @@ class ChartPage(QWidget):
 
         add_plots = [
             mpf.make_addplot(df['RSI'], panel=1, ylabel='RSI'),
+            mpf.make_addplot([70] * len(df), panel=1, color='gray'),
+            mpf.make_addplot([30] * len(df), panel=1, color='gray'),
             mpf.make_addplot(df['MACD_12_26_9'], panel=2, ylabel='MACD'),
             mpf.make_addplot(df['MACDs_12_26_9'], panel=2),
         ]
@@ -127,10 +130,23 @@ class ChartPage(QWidget):
             type='candle',
             mav=(9, 50),
             volume=True,
-            style='charles',
+            style='yahoo',
             addplot=add_plots,
             returnfig=True,
-            panel_ratios=(2, 1, 1)
+            panel_ratios=(4, 1, 1),
+            figsize=(9, 6),
+            xrotation=15,
+            datetime_format='%H:%M',
+            tight_layout=False  # Crucial: disable this
+        )
+
+        # Fine-tuned: reduce whitespace without breaking layout
+        fig.subplots_adjust(
+            top=0.97,
+            bottom=0.08,
+            left=0.05,
+            right=0.98,
+            hspace=0.15
         )
 
         if self.canvas:
@@ -138,7 +154,8 @@ class ChartPage(QWidget):
             self.canvas.setParent(None)
 
         self.canvas = FigureCanvas(fig)
-        self.layout.insertWidget(1, self.canvas)  # Insert after symbol_box
+        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layout.addWidget(self.canvas)
 
     def update_symbol(self, symbol):
         self.symbol_box.setCurrentText(symbol)
