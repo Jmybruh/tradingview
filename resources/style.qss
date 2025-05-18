@@ -1,0 +1,25 @@
+QTableWidget {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    gridline-color: #333;
+    selection-background-color: #2d2d2d;
+}
+
+QHeaderView::section {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    padding: 4px;
+    border: 1px solid #444;
+    font-weight: bold;
+}
+
+QWidget {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+QComboBox, QPushButton, QTableWidget {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    color: white;
+}
