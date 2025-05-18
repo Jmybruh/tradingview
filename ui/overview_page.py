@@ -6,6 +6,7 @@ import json
 
 WATCHLIST_SYMBOLS = ["btcusdt", "ethusdt", "bnbusdt"]
 
+
 class PriceStreamWorker(QObject):
     price_update = pyqtSignal(str, float)
 
@@ -28,7 +29,8 @@ class PriceStreamWorker(QObject):
         def on_close(ws, close_status_code, close_msg):
             print("WebSocket closed")
 
-        stream_url = f"wss://stream.binance.com:9443/stream?streams=" + "/".join([f"{s}@ticker" for s in WATCHLIST_SYMBOLS])
+        stream_url = f"wss://stream.binance.com:9443/stream?streams=" + "/".join(
+            [f"{s}@ticker" for s in WATCHLIST_SYMBOLS])
         self.ws = websocket.WebSocketApp(stream_url,
                                          on_message=on_message,
                                          on_error=on_error,
@@ -40,6 +42,7 @@ class PriceStreamWorker(QObject):
         self.running = False
         if self.ws:
             self.ws.close()
+
 
 class OverviewPage(QWidget):
     def __init__(self):

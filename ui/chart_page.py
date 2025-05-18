@@ -139,5 +139,6 @@ class ChartPage(QWidget):
 
         self.canvas = FigureCanvas(fig)
         self.layout.insertWidget(1, self.canvas)  # Insert after symbol_box
+
     def update_symbol(self, symbol):
         self.symbol_box.setCurrentText(symbol)

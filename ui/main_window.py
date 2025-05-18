@@ -3,6 +3,7 @@ from ui.chart_page import ChartPage
 from ui.analysis_page import AnalysisPage
 from ui.overview_page import OverviewPage
 
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
